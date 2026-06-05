@@ -223,7 +223,10 @@ function showPop(text, fish) { els.pop.textContent = text; els.pop.style.left = 
 function showCatch(fish) { els.catch.textContent = fish.emoji; els.catch.style.left = `${fish.x + fish.el.offsetWidth / 2}px`; els.catch.style.top = `${fish.y}px`; els.game.classList.remove('catching'); els.catch.classList.remove('show'); void els.catch.offsetWidth; els.game.classList.add('catching'); els.catch.classList.add('show'); positionLineTo(fish); }
 function catchFish(fish) {
   state.score += 1; if (state.score > state.best) { state.best = state.score; localStorage.setItem('sunwoo-fishing-best', String(state.best)); }
-  els.message.textContent = `${pick(praise)} 지금 ${state.score}마리`; showCatch(fish); showPop('💦', fish); removeFish(fish, 'caught'); els.input.value = '';
+  els.message.textContent = `${pick(praise)} 지금 ${state.score}마리`; showCatch(fish); showPop('💦', fish);
+  els.input.value = '';
+  removeFish(fish, 'caught');
+  renderGuide();
   if (state.fishes.length < Math.min(3, speedConfig[state.speed].maxFish)) setTimeout(() => createFish(), 220);
 }
 function findMatchingFish(typed) { return state.fishes.find((fish) => normalize(fish.word) === typed); }
@@ -284,7 +287,7 @@ els.input.addEventListener('keydown', (event) => {
 els.pills.forEach((pill) => {
   pill.addEventListener('click', () => {
     const mode = pill.dataset.mode; const speed = pill.dataset.speed;
-    if (mode) { state.mode = mode; updateKeyboardModeClass(); document.querySelectorAll('[data-mode]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = mode === 'ko' ? '한글 물고기로 간다.' : '영어 물고기로 간다.'; }
+    if (mode) { state.mode = mode; els.input.value = ''; updateKeyboardModeClass(); document.querySelectorAll('[data-mode]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = mode === 'ko' ? '한글 물고기로 간다.' : '영어 물고기로 간다.'; }
     if (speed) { state.speed = speed; document.querySelectorAll('[data-speed]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = speed === 'easy' ? '느긋하게 낚자.' : speed === 'fast' ? '바글바글하게 낚자.' : '보통 속도로 낚자.'; }
     if (state.running) { clearFishes(); for (let i = 0; i < 3; i++) createFish(); scheduleNextSpawn(performance.now()); }
     els.input.focus(); renderGuide();
