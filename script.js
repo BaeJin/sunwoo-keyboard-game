@@ -70,7 +70,7 @@ const els = {
 const state = {
   running: false, mode: 'ko', speed: 'normal', score: 0,
   best: Number(localStorage.getItem('sunwoo-fishing-best') || localStorage.getItem('sunwoo-keyboard-best') || 0),
-  fishes: [], nextId: 1, startTime: 0, endTime: 0, nextSpawnAt: 0, lastTime: 0, raf: null, guideFish: null, guideFishId: null
+  fishes: [], nextId: 1, startTime: 0, endTime: 0, nextSpawnAt: 0, lastTime: 0, raf: null, guideFish: null, guideFishId: null, isComposing: false, suppressGuideUntil: 0
 };
 
 function rand(min, max) { return min + Math.random() * (max - min); }
@@ -99,6 +99,14 @@ function guideSteps(text) {
 function keyInfoFor(step) {
   return state.mode === 'ko' ? jamoToKey[step] : letterToKey[step.toLowerCase()];
 }
+function clearTypingInput() {
+  state.suppressGuideUntil = performance.now() + 180;
+  els.input.value = '';
+  requestAnimationFrame(() => { els.input.value = ''; renderGuide(); });
+  setTimeout(() => { els.input.value = ''; renderGuide(); }, 0);
+  setTimeout(() => { state.suppressGuideUntil = 0; renderGuide(); }, 190);
+}
+
 function compareInput(targetWord, typedText) {
   const target = guideSteps(targetWord);
   const typed = guideSteps(typedText);
@@ -149,8 +157,13 @@ function renderGuide() {
     els.nextHint.textContent = '다음: -';
     return;
   }
-  const typed = normalize(els.input.value);
-  const { target: jamos, matched, hasError, errorIndex, currentIndex } = compareInput(state.guideFish.word, typed);
+  const typed = performance.now() < state.suppressGuideUntil ? '' : normalize(els.input.value);
+  const comparison = compareInput(state.guideFish.word, typed);
+  const jamos = comparison.target;
+  const matched = comparison.matched;
+  const hasError = state.isComposing ? false : comparison.hasError;
+  const errorIndex = comparison.errorIndex;
+  const currentIndex = comparison.currentIndex;
   els.jamoTrail.innerHTML = jamos.map((jamo, i) => {
     const classes = ['jamo'];
     if (i < matched) classes.push('done');
@@ -224,7 +237,7 @@ function showCatch(fish) { els.catch.textContent = fish.emoji; els.catch.style.l
 function catchFish(fish) {
   state.score += 1; if (state.score > state.best) { state.best = state.score; localStorage.setItem('sunwoo-fishing-best', String(state.best)); }
   els.message.textContent = `${pick(praise)} 지금 ${state.score}마리`; showCatch(fish); showPop('💦', fish);
-  els.input.value = '';
+  clearTypingInput();
   removeFish(fish, 'caught');
   renderGuide();
   if (state.fishes.length < Math.min(3, speedConfig[state.speed].maxFish)) setTimeout(() => createFish(), 220);
@@ -256,18 +269,21 @@ function clearFishes() { state.fishes.forEach((fish) => fish.el.remove()); state
 function startGame() {
   const now = performance.now(); state.running = true; state.score = 0; state.startTime = now; state.endTime = now + GAME_SECONDS * 1000; state.lastTime = 0; state.nextId = 1;
   els.game.classList.add('running'); els.start.textContent = '다시 시작'; els.message.textContent = '5분 낚시 시작. 보이는 물고기 이름을 쳐라.'; els.finish.classList.add('hidden'); clearFishes(); updateHud(now);
-  for (let i = 0; i < 3; i++) createFish(now + i); setGuideFish(); scheduleNextSpawn(now); els.input.value = ''; els.input.disabled = false; els.input.focus(); cancelAnimationFrame(state.raf); state.raf = requestAnimationFrame(tick);
+  for (let i = 0; i < 3; i++) createFish(now + i); setGuideFish(); scheduleNextSpawn(now); clearTypingInput(); els.input.disabled = false; els.input.focus(); cancelAnimationFrame(state.raf); state.raf = requestAnimationFrame(tick);
 }
 function endGame() {
   state.running = false; cancelAnimationFrame(state.raf); els.game.classList.remove('running'); els.input.disabled = true; els.start.textContent = '다시 하기'; els.time.textContent = '0:00';
   els.message.textContent = `끝. 총 ${state.score}마리 잡았다.`; els.finish.textContent = `끝! ${state.score}마리 잡았다 🎣`; els.finish.classList.remove('hidden'); clearFishes(); els.inWater.textContent = '0'; els.score.textContent = state.score; els.best.textContent = state.best;
 }
 
+els.input.addEventListener('compositionstart', () => { state.isComposing = true; renderGuide(); });
+els.input.addEventListener('compositionend', () => { state.isComposing = false; renderGuide(); });
 els.input.addEventListener('input', () => {
+  if (performance.now() < state.suppressGuideUntil) { els.input.value = ''; renderGuide(); return; }
   if (!state.running) return;
   const typed = normalize(els.input.value);
   setGuideFish();
-  if (state.guideFish && typed && compareInput(state.guideFish.word, typed).hasError) {
+  if (!state.isComposing && state.guideFish && typed && compareInput(state.guideFish.word, typed).hasError) {
     els.message.textContent = '오타가 있다. 빨간 자모 자리부터 다시 맞춰봐.';
   }
   renderGuide();
@@ -275,6 +291,8 @@ els.input.addEventListener('input', () => {
 els.start.addEventListener('click', startGame);
 els.input.addEventListener('keydown', (event) => {
   if (event.key !== 'Enter') return;
+  if (event.isComposing || state.isComposing) return;
+  event.preventDefault();
   if (!state.running) { startGame(); return; }
   const typed = normalize(els.input.value);
   const fish = findMatchingFish(typed);
@@ -287,7 +305,7 @@ els.input.addEventListener('keydown', (event) => {
 els.pills.forEach((pill) => {
   pill.addEventListener('click', () => {
     const mode = pill.dataset.mode; const speed = pill.dataset.speed;
-    if (mode) { state.mode = mode; els.input.value = ''; updateKeyboardModeClass(); document.querySelectorAll('[data-mode]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = mode === 'ko' ? '한글 물고기로 간다.' : '영어 물고기로 간다.'; }
+    if (mode) { state.mode = mode; clearTypingInput(); updateKeyboardModeClass(); document.querySelectorAll('[data-mode]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = mode === 'ko' ? '한글 물고기로 간다.' : '영어 물고기로 간다.'; }
     if (speed) { state.speed = speed; document.querySelectorAll('[data-speed]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = speed === 'easy' ? '느긋하게 낚자.' : speed === 'fast' ? '바글바글하게 낚자.' : '보통 속도로 낚자.'; }
     if (state.running) { clearFishes(); for (let i = 0; i < 3; i++) createFish(); scheduleNextSpawn(performance.now()); }
     els.input.focus(); renderGuide();
