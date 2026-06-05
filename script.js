@@ -23,7 +23,6 @@ const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','
 const JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
 const JONG = ['', 'ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 const COMBO_JAMO = {
-  'ㄲ': ['ㄱ', 'ㄱ'], 'ㄸ': ['ㄷ', 'ㄷ'], 'ㅃ': ['ㅂ', 'ㅂ'], 'ㅆ': ['ㅅ', 'ㅅ'], 'ㅉ': ['ㅈ', 'ㅈ'],
   'ㅘ': ['ㅗ', 'ㅏ'], 'ㅙ': ['ㅗ', 'ㅐ'], 'ㅚ': ['ㅗ', 'ㅣ'], 'ㅝ': ['ㅜ', 'ㅓ'], 'ㅞ': ['ㅜ', 'ㅔ'], 'ㅟ': ['ㅜ', 'ㅣ'], 'ㅢ': ['ㅡ', 'ㅣ'],
   'ㄳ': ['ㄱ', 'ㅅ'], 'ㄵ': ['ㄴ', 'ㅈ'], 'ㄶ': ['ㄴ', 'ㅎ'], 'ㄺ': ['ㄹ', 'ㄱ'], 'ㄻ': ['ㄹ', 'ㅁ'], 'ㄼ': ['ㄹ', 'ㅂ'],
   'ㄽ': ['ㄹ', 'ㅅ'], 'ㄾ': ['ㄹ', 'ㅌ'], 'ㄿ': ['ㄹ', 'ㅍ'], 'ㅀ': ['ㄹ', 'ㅎ'], 'ㅄ': ['ㅂ', 'ㅅ']
@@ -42,9 +41,15 @@ const keyRows = [
     ['n','ㅜ','right','1'], ['m','ㅡ','right','1']
   ]
 ];
-const fingerNames = { '1': '검지', '2': '중지', '3': '약지', '4': '새끼' };
-const handNames = { left: '왼손', right: '오른손' };
+const shiftedJamo = {
+  'ㅃ': { base: 'ㅂ', key: 'Q' }, 'ㅉ': { base: 'ㅈ', key: 'W' }, 'ㄸ': { base: 'ㄷ', key: 'E' }, 'ㄲ': { base: 'ㄱ', key: 'R' }, 'ㅆ': { base: 'ㅅ', key: 'T' },
+  'ㅒ': { base: 'ㅐ', key: 'O' }, 'ㅖ': { base: 'ㅔ', key: 'P' }
+};
 const jamoToKey = Object.fromEntries(keyRows.flat().map(([key, jamo, hand, finger]) => [jamo, { key, hand, finger }]));
+for (const [jamo, shift] of Object.entries(shiftedJamo)) {
+  const base = jamoToKey[shift.base];
+  jamoToKey[jamo] = { ...base, key: shift.key, shifted: true, shiftHand: base.hand === 'left' ? 'right' : 'left', baseJamo: shift.base };
+}
 
 const els = {
   game: document.querySelector('#game'), fishes: document.querySelector('#fishes'), line: document.querySelector('#line'),
@@ -101,7 +106,8 @@ function buildKeyboard() {
       el.dataset.jamo = jamo;
       el.dataset.hand = hand;
       el.dataset.finger = finger;
-      el.innerHTML = `<span class="latin">${key.toUpperCase()}</span><strong>${jamo}</strong>`;
+      const shifted = Object.entries(shiftedJamo).find(([, value]) => value.base === jamo)?.[0] || '';
+      el.innerHTML = `<span class="latin">${key.toUpperCase()}</span><strong>${jamo}</strong>${shifted ? `<span class="shifted-jamo">⇧${shifted}</span>` : ''}`;
       rowEl.appendChild(el);
     }
     els.keyboard.appendChild(rowEl);
@@ -116,6 +122,7 @@ function setGuideFish(fish = null) {
 function renderGuide() {
   document.querySelectorAll('.key.active, .key.used, .key.error').forEach((el) => el.classList.remove('active', 'used', 'error'));
   document.querySelectorAll('.finger-dot.active, .finger-dot.error').forEach((el) => el.classList.remove('active', 'error'));
+  document.querySelectorAll('.shift-key.active, .shift-key.error').forEach((el) => el.classList.remove('active', 'error'));
   if (!state.guideFish || state.mode !== 'ko') {
     els.jamoTrail.innerHTML = '<span class="empty-guide">한글 물고기가 나오면 자모 순서가 표시된다.</span>';
     els.nextHint.textContent = '다음: -';
@@ -134,14 +141,20 @@ function renderGuide() {
   const focusIndex = hasError ? errorIndex : currentIndex;
   const next = jamos[focusIndex];
   const info = jamoToKey[next];
-  jamos.slice(0, matched).forEach((j) => document.querySelector(`.key[data-jamo="${j}"]`)?.classList.add('used'));
+  jamos.slice(0, matched).forEach((j) => {
+    const usedInfo = jamoToKey[j];
+    const usedJamo = usedInfo?.baseJamo || j;
+    document.querySelector(`.key[data-jamo="${usedJamo}"]`)?.classList.add('used');
+  });
   if (next && info) {
-    const key = document.querySelector(`.key[data-jamo="${next}"]`);
+    const keyJamo = info.baseJamo || next;
+    const key = document.querySelector(`.key[data-jamo="${keyJamo}"]`);
     key?.classList.add(hasError ? 'error' : 'active');
     els.nextHint.textContent = hasError
-      ? `오타: ${next} 자리 → ${info.key.toUpperCase()}`
-      : `다음: ${next} → ${info.key.toUpperCase()}`;
+      ? `오타: ${next} 자리 → ${info.shifted ? 'Shift + ' : ''}${info.key.toUpperCase()}`
+      : `다음: ${next} → ${info.shifted ? 'Shift + ' : ''}${info.key.toUpperCase()}`;
     document.querySelector(`.finger-dot[data-hand="${info.hand}"][data-finger="${info.finger}"]`)?.classList.add(hasError ? 'error' : 'active');
+    if (info.shifted) document.querySelector(`.shift-key[data-shift="${info.shiftHand}"]`)?.classList.add(hasError ? 'error' : 'active');
   } else {
     els.nextHint.textContent = hasError ? '오타가 있다. 지우고 다시 쳐봐.' : `${state.guideFish.word} 완성 — Enter!`;
   }
