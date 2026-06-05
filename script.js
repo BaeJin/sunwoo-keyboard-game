@@ -10,6 +10,12 @@ const words = {
   ]
 };
 
+
+const koreanMeaning = {
+  fish: '물고기', tuna: '참치', salmon: '연어', shark: '상어', whale: '고래', squid: '오징어', octopus: '문어', crab: '게', shrimp: '새우', eel: '장어',
+  carp: '잉어', trout: '송어', bass: '농어', cod: '대구', mackerel: '고등어', anchovy: '멸치', ray: '가오리', clam: '조개', lobster: '바닷가재', dolphin: '돌고래'
+};
+
 const fishEmoji = ['🐟', '🐠', '🐡', '🦈', '🐙', '🦑', '🦐', '🦀'];
 const praise = ['잡았다!', '월척이다!', '손맛 좋다!', '물고기 획득!', '낚시 성공!', '슝— 잡았다!'];
 const GAME_SECONDS = 5 * 60;
@@ -193,7 +199,8 @@ function createFish(now = performance.now()) {
   const x = fromLeft ? edgePadding : gameRect.width - edgePadding;
   const vx = (fromLeft ? 1 : -1) * rand(cfg.swim * 0.65, cfg.swim * 1.35); const vy = rand(-5, 5);
   const el = document.createElement('button'); el.type = 'button'; el.className = 'fish-card'; el.dataset.id = String(state.nextId);
-  el.innerHTML = `<span class="fish-emoji">${emoji}</span><span class="fish-word">${word}</span>`; els.fishes.appendChild(el);
+  const meaning = state.mode === 'en' ? koreanMeaning[word] : '';
+  el.innerHTML = `<span class="fish-emoji">${emoji}</span><span class="fish-text"><span class="fish-word">${word}</span>${meaning ? `<span class="fish-meaning">${meaning}</span>` : ''}</span>`; els.fishes.appendChild(el);
   const fish = { id: state.nextId++, word, emoji, el, x, y, vx, vy, bornAt: now, hooked: false };
   el.addEventListener('click', () => { els.input.focus(); setGuideFish(fish); });
   state.fishes.push(fish); renderFish(fish); if (!state.guideFish) setGuideFish(fish); updateHud(now);
