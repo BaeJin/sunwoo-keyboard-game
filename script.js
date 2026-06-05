@@ -80,11 +80,13 @@ function decomposeJamo(text) {
   }
   return result;
 }
-function typedJamoCount(word, typed) {
-  let count = 0;
-  const n = Math.min(word.length, typed.length);
-  for (let i = 0; i < n; i++) count += decomposeJamo(word[i]).length;
-  return count;
+function compareJamo(targetWord, typedText) {
+  const target = decomposeJamo(targetWord);
+  const typed = decomposeJamo(typedText);
+  let matched = 0;
+  while (matched < target.length && matched < typed.length && target[matched] === typed[matched]) matched += 1;
+  const hasError = typed.length > matched;
+  return { target, typed, matched, hasError, errorIndex: hasError ? matched : -1, currentIndex: Math.min(matched, target.length) };
 }
 
 function buildKeyboard() {
@@ -109,24 +111,34 @@ function setGuideFish(fish = null) {
   renderGuide();
 }
 function renderGuide() {
-  document.querySelectorAll('.key.active, .key.used').forEach((el) => el.classList.remove('active', 'used'));
+  document.querySelectorAll('.key.active, .key.used, .key.error').forEach((el) => el.classList.remove('active', 'used', 'error'));
   if (!state.guideFish || state.mode !== 'ko') {
     els.jamoTrail.innerHTML = '<span class="empty-guide">한글 물고기가 나오면 자모 순서가 표시된다.</span>';
     els.nextHint.textContent = '다음: -';
     return;
   }
   const typed = normalize(els.input.value);
-  const jamos = decomposeJamo(state.guideFish.word);
-  const currentIndex = Math.min(jamos.length, typedJamoCount(state.guideFish.word, typed));
-  els.jamoTrail.innerHTML = jamos.map((jamo, i) => `<span class="jamo ${i < currentIndex ? 'done' : ''} ${i === currentIndex ? 'current' : ''}">${jamo}</span>`).join('');
-  const next = jamos[currentIndex];
+  const { target: jamos, matched, hasError, errorIndex, currentIndex } = compareJamo(state.guideFish.word, typed);
+  els.jamoTrail.innerHTML = jamos.map((jamo, i) => {
+    const classes = ['jamo'];
+    if (i < matched) classes.push('done');
+    if (hasError && i === errorIndex) classes.push('error');
+    else if (!hasError && i === currentIndex) classes.push('current');
+    return `<span class="${classes.join(' ')}">${jamo}</span>`;
+  }).join('');
+
+  const focusIndex = hasError ? errorIndex : currentIndex;
+  const next = jamos[focusIndex];
   const info = jamoToKey[next];
+  jamos.slice(0, matched).forEach((j) => document.querySelector(`.key[data-jamo="${j}"]`)?.classList.add('used'));
   if (next && info) {
-    els.nextHint.textContent = `다음: ${next} → ${info.key.toUpperCase()} · ${info.finger}`;
-    document.querySelector(`.key[data-jamo="${next}"]`)?.classList.add('active');
-    jamos.slice(0, currentIndex).forEach((j) => document.querySelector(`.key[data-jamo="${j}"]`)?.classList.add('used'));
+    const key = document.querySelector(`.key[data-jamo="${next}"]`);
+    key?.classList.add(hasError ? 'error' : 'active');
+    els.nextHint.textContent = hasError
+      ? `오타: ${next} 자리 → ${info.key.toUpperCase()} · ${info.finger}`
+      : `다음: ${next} → ${info.key.toUpperCase()} · ${info.finger}`;
   } else {
-    els.nextHint.textContent = `${state.guideFish.word} 완성`;
+    els.nextHint.textContent = hasError ? '오타가 있다. 지우고 다시 쳐봐.' : `${state.guideFish.word} 완성 — Enter!`;
   }
 }
 
@@ -197,13 +209,27 @@ function endGame() {
 }
 
 els.input.addEventListener('input', () => {
-  if (!state.running) return; const typed = normalize(els.input.value); const fish = findMatchingFish(typed);
-  if (fish) { catchFish(fish); return; }
-  const prefixFish = state.fishes.find((fish) => normalize(fish.word).startsWith(typed)); if (prefixFish) setGuideFish(prefixFish);
-  const tooLong = state.fishes.some((fish) => typed.length >= fish.word.length); if (tooLong) els.message.textContent = '조금 달라. 지우고 다른 물고기 이름을 쳐봐.'; renderGuide();
+  if (!state.running) return;
+  const typed = normalize(els.input.value);
+  const prefixFish = typed ? state.fishes.find((fish) => normalize(fish.word).startsWith(typed)) : null;
+  if (prefixFish) setGuideFish(prefixFish);
+  if (state.guideFish && compareJamo(state.guideFish.word, typed).hasError) {
+    els.message.textContent = '오타가 있다. 빨간 자모 자리부터 다시 맞춰봐.';
+  }
+  renderGuide();
 });
 els.start.addEventListener('click', startGame);
-els.input.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !state.running) startGame(); });
+els.input.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter') return;
+  if (!state.running) { startGame(); return; }
+  const typed = normalize(els.input.value);
+  const fish = findMatchingFish(typed);
+  if (fish) catchFish(fish);
+  else {
+    els.message.textContent = '아직 물고기 이름이 완성 안 됐다. 빨간 자모가 있으면 고쳐봐.';
+    renderGuide();
+  }
+});
 els.pills.forEach((pill) => {
   pill.addEventListener('click', () => {
     const mode = pill.dataset.mode; const speed = pill.dataset.speed;
