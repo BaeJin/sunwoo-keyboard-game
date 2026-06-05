@@ -128,6 +128,11 @@ function buildKeyboard() {
   }
 }
 
+function updateKeyboardModeClass() {
+  els.keyboard.classList.toggle('english-mode', state.mode === 'en');
+  els.keyboard.classList.toggle('korean-mode', state.mode === 'ko');
+}
+
 function setGuideFish(fish = null) {
   if (fish) state.guideFishId = fish.id;
   state.guideFish = state.fishes.find((item) => item.id === state.guideFishId) || state.fishes[0] || null;
@@ -279,11 +284,11 @@ els.input.addEventListener('keydown', (event) => {
 els.pills.forEach((pill) => {
   pill.addEventListener('click', () => {
     const mode = pill.dataset.mode; const speed = pill.dataset.speed;
-    if (mode) { state.mode = mode; document.querySelectorAll('[data-mode]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = mode === 'ko' ? '한글 물고기로 간다.' : '영어 물고기로 간다.'; }
+    if (mode) { state.mode = mode; updateKeyboardModeClass(); document.querySelectorAll('[data-mode]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = mode === 'ko' ? '한글 물고기로 간다.' : '영어 물고기로 간다.'; }
     if (speed) { state.speed = speed; document.querySelectorAll('[data-speed]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = speed === 'easy' ? '느긋하게 낚자.' : speed === 'fast' ? '바글바글하게 낚자.' : '보통 속도로 낚자.'; }
     if (state.running) { clearFishes(); for (let i = 0; i < 3; i++) createFish(); scheduleNextSpawn(performance.now()); }
     els.input.focus(); renderGuide();
   });
 });
 
-buildKeyboard(); updateHud(); renderGuide(); els.input.disabled = false;
+buildKeyboard(); updateKeyboardModeClass(); updateHud(); renderGuide(); els.input.disabled = false;

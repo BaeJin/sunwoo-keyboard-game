@@ -94,6 +94,10 @@ input:focus { border-color: var(--blue); box-shadow: 0 0 0 5px rgba(87,182,255,.
 .key { position: relative; width: 72px; min-height: 66px; display: grid; grid-template-areas: "latin shift" "jamo jamo"; grid-template-columns: 1fr 1fr; align-items: center; padding: 7px; border-radius: 15px; background: white; border: 3px solid rgba(8,103,155,.18); box-shadow: 0 5px 0 rgba(8,103,155,.13); }
 .key .latin { grid-area: latin; color: #7a8991; font-weight: 1000; font-size: 13px; }
 .key strong { grid-area: jamo; text-align: center; font-size: 28px; line-height: 1; }
+.keyboard.english-mode .key { grid-template-areas: "latin latin" "jamo shift"; }
+.keyboard.english-mode .key .latin { justify-self: center; color: var(--ink); font-size: 30px; line-height: 1; }
+.keyboard.english-mode .key strong { justify-self: start; color: #8aa0aa; font-size: 16px; }
+.keyboard.english-mode .shifted-jamo { opacity: .55; transform: scale(.85); transform-origin: top right; }
 .shifted-jamo { grid-area: shift; justify-self: end; align-self: start; padding: 2px 5px; border-radius: 999px; background: #fff0c7; color: var(--orange-dark); font-size: 12px; font-weight: 1000; }
 .key.used { background: #effff5; border-color: rgba(87,199,133,.55); }
 .key.active { background: #ffefbd; border-color: var(--orange); box-shadow: 0 0 0 6px rgba(255,157,46,.2), 0 6px 0 rgba(229,109,31,.25); transform: translateY(-2px); }
