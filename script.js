@@ -195,7 +195,7 @@ function createFish(now = performance.now()) {
   const cfg = speedConfig[state.speed]; if (state.fishes.length >= cfg.maxFish) return;
   const gameRect = els.game.getBoundingClientRect(); const word = pickWord(); const emoji = pick(fishEmoji);
   const fromLeft = Math.random() > 0.5; const y = rand(78, Math.max(120, gameRect.height - 112));
-  const edgePadding = 86;
+  const edgePadding = 92;
   const x = fromLeft ? edgePadding : gameRect.width - edgePadding;
   const vx = (fromLeft ? 1 : -1) * rand(cfg.swim * 0.65, cfg.swim * 1.35); const vy = rand(-5, 5);
   const el = document.createElement('button'); el.type = 'button'; el.className = 'fish-card'; el.dataset.id = String(state.nextId);
@@ -229,9 +229,17 @@ function tick(now) {
   const gameRect = els.game.getBoundingClientRect();
   for (const fish of [...state.fishes]) {
     fish.x += fish.vx * delta; fish.y += Math.sin((now + fish.id * 700) / 1000) * 7 * delta + fish.vy * delta;
-    const edgePadding = 86;
-    if (fish.x < -170) fish.x = gameRect.width - edgePadding; if (fish.x > gameRect.width + 170) fish.x = edgePadding;
-    fish.y = Math.max(72, Math.min(gameRect.height - 102, fish.y)); fish.el.style.opacity = '1'; renderFish(fish);
+    const halfWidth = fish.el.offsetWidth / 2 || 86;
+    const halfHeight = fish.el.offsetHeight / 2 || 32;
+    const minX = halfWidth + 10;
+    const maxX = gameRect.width - halfWidth - 10;
+    const minY = halfHeight + 62;
+    const maxY = gameRect.height - halfHeight - 68;
+    if (fish.x < minX) { fish.x = minX; fish.vx = Math.abs(fish.vx); }
+    if (fish.x > maxX) { fish.x = maxX; fish.vx = -Math.abs(fish.vx); }
+    if (fish.y < minY) { fish.y = minY; fish.vy = Math.abs(fish.vy || 3); }
+    if (fish.y > maxY) { fish.y = maxY; fish.vy = -Math.abs(fish.vy || 3); }
+    fish.el.style.opacity = '1'; renderFish(fish);
   }
   if (now >= state.nextSpawnAt) { createFish(now); scheduleNextSpawn(now); }
   updateHud(now); renderGuide(); state.raf = requestAnimationFrame(tick);
