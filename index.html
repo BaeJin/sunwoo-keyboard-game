@@ -56,15 +56,27 @@
       <div class="guide-head">
         <div>
           <strong>손가락 가이드</strong>
-          <p>2벌식 QWERTY 기준. 다음 자모와 눌러야 할 손가락을 보여준다.</p>
+          <p>2벌식 QWERTY 기준. 다음 자모와 눌러야 할 키, 손가락 위치를 보여준다.</p>
         </div>
         <div id="nextHint" class="next-hint">다음: -</div>
       </div>
       <div id="jamoTrail" class="jamo-trail" aria-label="자모 입력 순서"></div>
       <div id="keyboard" class="keyboard" aria-label="한글 2벌식 키보드"></div>
-      <div class="finger-legend" aria-label="손가락 번호 설명">
-        <span>왼1 검지</span><span>왼2 중지</span><span>왼3 약지</span><span>왼4 새끼</span>
-        <span>오1 검지</span><span>오2 중지</span><span>오3 약지</span><span>오4 새끼</span>
+      <div class="hands" aria-label="손가락 위치 안내">
+        <div class="hand left-hand">
+          <span class="hand-title">왼손</span>
+          <span class="finger-dot pinky" data-hand="left" data-finger="4"><b>새끼</b></span>
+          <span class="finger-dot ring" data-hand="left" data-finger="3"><b>약지</b></span>
+          <span class="finger-dot middle" data-hand="left" data-finger="2"><b>중지</b></span>
+          <span class="finger-dot index" data-hand="left" data-finger="1"><b>검지</b></span>
+        </div>
+        <div class="hand right-hand">
+          <span class="hand-title">오른손</span>
+          <span class="finger-dot index" data-hand="right" data-finger="1"><b>검지</b></span>
+          <span class="finger-dot middle" data-hand="right" data-finger="2"><b>중지</b></span>
+          <span class="finger-dot ring" data-hand="right" data-finger="3"><b>약지</b></span>
+          <span class="finger-dot pinky" data-hand="right" data-finger="4"><b>새끼</b></span>
+        </div>
       </div>
     </section>
 
