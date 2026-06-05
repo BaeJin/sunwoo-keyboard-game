@@ -157,3 +157,90 @@ input:focus { border-color: var(--blue); box-shadow: 0 0 0 5px rgba(87,182,255,.
   .input-row { flex-direction: column; }
   #start { padding: 16px; }
 }
+
+/* Fishing theme */
+body {
+  background:
+    radial-gradient(circle at top left, rgba(255, 224, 166, .85) 0 20%, transparent 21%),
+    radial-gradient(circle at 92% 12%, rgba(199, 236, 255, .9) 0 18%, transparent 19%),
+    linear-gradient(180deg, #fff8e8 0%, #e7f8ff 58%, #d3f2ff 100%);
+}
+
+.game {
+  background:
+    radial-gradient(circle at 16% 18%, rgba(255,255,255,.8) 0 4px, transparent 5px),
+    radial-gradient(circle at 72% 34%, rgba(255,255,255,.6) 0 3px, transparent 4px),
+    linear-gradient(#aee8ff 0 25%, #2bb8e8 26% 58%, #1179c6 59% 100%);
+}
+.game::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 52px;
+  height: 70px;
+  background:
+    radial-gradient(ellipse at 20% 40%, rgba(255,255,255,.36), transparent 46%),
+    radial-gradient(ellipse at 62% 58%, rgba(255,255,255,.28), transparent 48%);
+  animation: waterMove 4s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.game::after {
+  height: 62px;
+  background:
+    linear-gradient(180deg, rgba(255, 220, 143, .92), rgba(231, 176, 92, .96)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.38), rgba(255,255,255,.38) 18px, transparent 18px, transparent 36px);
+}
+@keyframes waterMove { from { transform: translateX(-16px); } to { transform: translateX(16px); } }
+
+.dock {
+  position: absolute;
+  right: 22px;
+  top: 10px;
+  z-index: 4;
+  font-size: clamp(38px, 7vw, 62px);
+  filter: drop-shadow(0 8px 4px rgba(0,0,0,.16));
+}
+.line {
+  position: absolute;
+  z-index: 2;
+  width: 3px;
+  min-height: 24px;
+  background: repeating-linear-gradient(180deg, #5b4632, #5b4632 8px, rgba(91,70,50,.55) 8px, rgba(91,70,50,.55) 12px);
+  transform: translateX(-50%);
+  transform-origin: top center;
+  opacity: .8;
+  pointer-events: none;
+}
+.line::after {
+  content: "🪝";
+  position: absolute;
+  left: 50%;
+  bottom: -16px;
+  transform: translateX(-50%);
+  font-size: 18px;
+}
+.game.catching .line { animation: reelLine .45s ease; }
+@keyframes reelLine { 0% { transform: translateX(-50%) scaleY(1); } 70% { transform: translateX(-50%) scaleY(.35); } 100% { transform: translateX(-50%) scaleY(1); } }
+
+.word {
+  z-index: 3;
+  background: #ffffff;
+  border-color: #20a8e0;
+  box-shadow: 0 12px 0 rgba(17,121,198,.25);
+}
+.catch {
+  position: absolute;
+  z-index: 5;
+  transform: translate(-50%, -50%);
+  font-size: clamp(42px, 8vw, 72px);
+  opacity: 0;
+  pointer-events: none;
+}
+.catch.show { animation: catchFish .75s cubic-bezier(.2, .9, .2, 1); }
+@keyframes catchFish {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(.8) rotate(-8deg); }
+  55% { opacity: 1; transform: translate(-50%, -170%) scale(1.25) rotate(10deg); }
+  100% { opacity: 0; transform: translate(80%, -250%) scale(.8) rotate(24deg); }
+}
+.pop { z-index: 6; }
+.pop.show { animation: splashPop .65s ease; }
+@keyframes splashPop { 0%{ opacity:0; transform:translate(-50%,-20%) scale(.4) } 35%{ opacity:1; transform:translate(-50%,-50%) scale(1.25) } 100%{ opacity:0; transform:translate(-50%,-90%) scale(1) } }
