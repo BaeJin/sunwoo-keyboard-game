@@ -63,7 +63,7 @@ const els = {
 const state = {
   running: false, mode: 'ko', speed: 'normal', score: 0,
   best: Number(localStorage.getItem('sunwoo-fishing-best') || localStorage.getItem('sunwoo-keyboard-best') || 0),
-  fishes: [], nextId: 1, startTime: 0, endTime: 0, nextSpawnAt: 0, lastTime: 0, raf: null, guideFish: null
+  fishes: [], nextId: 1, startTime: 0, endTime: 0, nextSpawnAt: 0, lastTime: 0, raf: null, guideFish: null, guideFishId: null
 };
 
 function rand(min, max) { return min + Math.random() * (max - min); }
@@ -115,8 +115,11 @@ function buildKeyboard() {
 }
 
 function setGuideFish(fish = null) {
-  if (state.mode !== 'ko') fish = null;
-  state.guideFish = fish || state.fishes.find((item) => item.word === state.guideFish?.word) || state.fishes[0] || null;
+  if (fish) state.guideFishId = fish.id;
+  if (state.mode !== 'ko') state.guideFishId = null;
+  state.guideFish = state.fishes.find((item) => item.id === state.guideFishId) || state.fishes[0] || null;
+  document.querySelectorAll('.fish-card.guided').forEach((el) => el.classList.remove('guided'));
+  state.guideFish?.el.classList.add('guided');
   renderGuide();
 }
 function renderGuide() {
@@ -190,7 +193,9 @@ function renderFish(fish) { fish.el.style.left = `${fish.x}px`; fish.el.style.to
 function removeFish(fish, reason = 'gone') {
   if (fish.hooked) return; fish.hooked = true; fish.el.classList.add(reason === 'caught' ? 'caught' : 'fading');
   setTimeout(() => fish.el.remove(), reason === 'caught' ? 180 : 500); state.fishes = state.fishes.filter((item) => item !== fish);
-  if (state.guideFish === fish) state.guideFish = null; setGuideFish(); updateHud();
+  if (state.guideFishId === fish.id) state.guideFishId = null;
+  if (state.guideFish === fish) state.guideFish = null;
+  setGuideFish(); updateHud();
 }
 function positionLineTo(fish) { els.line.style.left = `${fish.x + fish.el.offsetWidth / 2}px`; els.line.style.top = '54px'; els.line.style.height = `${Math.max(24, fish.y - 48)}px`; }
 function showPop(text, fish) { els.pop.textContent = text; els.pop.style.left = `${fish.x + fish.el.offsetWidth / 2}px`; els.pop.style.top = `${fish.y}px`; els.pop.classList.remove('show'); void els.pop.offsetWidth; els.pop.classList.add('show'); }
@@ -215,7 +220,7 @@ function tick(now) {
   if (now >= state.nextSpawnAt) { createFish(now); scheduleNextSpawn(now); }
   updateHud(now); renderGuide(); state.raf = requestAnimationFrame(tick);
 }
-function clearFishes() { state.fishes.forEach((fish) => fish.el.remove()); state.fishes = []; state.guideFish = null; setGuideFish(); }
+function clearFishes() { state.fishes.forEach((fish) => fish.el.remove()); state.fishes = []; state.guideFish = null; state.guideFishId = null; setGuideFish(); }
 function startGame() {
   const now = performance.now(); state.running = true; state.score = 0; state.startTime = now; state.endTime = now + GAME_SECONDS * 1000; state.lastTime = 0; state.nextId = 1;
   els.game.classList.add('running'); els.start.textContent = '다시 시작'; els.message.textContent = '5분 낚시 시작. 보이는 물고기 이름을 쳐라.'; els.finish.classList.add('hidden'); clearFishes(); updateHud(now);
@@ -229,9 +234,8 @@ function endGame() {
 els.input.addEventListener('input', () => {
   if (!state.running) return;
   const typed = normalize(els.input.value);
-  const prefixFish = typed ? state.fishes.find((fish) => normalize(fish.word).startsWith(typed)) : null;
-  if (prefixFish) setGuideFish(prefixFish);
-  if (state.guideFish && compareJamo(state.guideFish.word, typed).hasError) {
+  setGuideFish();
+  if (state.guideFish && typed && compareJamo(state.guideFish.word, typed).hasError) {
     els.message.textContent = '오타가 있다. 빨간 자모 자리부터 다시 맞춰봐.';
   }
   renderGuide();
