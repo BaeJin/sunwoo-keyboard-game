@@ -13,7 +13,6 @@ const words = {
 const fishEmoji = ['🐟', '🐠', '🐡', '🦈', '🐙', '🦑', '🦐', '🦀'];
 const praise = ['잡았다!', '월척이다!', '손맛 좋다!', '물고기 획득!', '낚시 성공!', '슝— 잡았다!'];
 const GAME_SECONDS = 5 * 60;
-const LIFESPAN_MS = { min: 22000, max: 38000 }; // 평균 약 30초
 const speedConfig = {
   easy: { maxFish: 4, spawnMin: 4200, spawnMax: 6200, swim: 10 },
   normal: { maxFish: 6, spawnMin: 3000, spawnMax: 5000, swim: 15 },
@@ -160,10 +159,9 @@ function createFish(now = performance.now()) {
   const gameRect = els.game.getBoundingClientRect(); const word = pickWord(); const emoji = pick(fishEmoji);
   const fromLeft = Math.random() > 0.5; const y = rand(78, Math.max(120, gameRect.height - 112));
   const x = fromLeft ? -150 : gameRect.width + 150; const vx = (fromLeft ? 1 : -1) * rand(cfg.swim * 0.65, cfg.swim * 1.35); const vy = rand(-5, 5);
-  const lifespan = rand(LIFESPAN_MS.min, LIFESPAN_MS.max);
   const el = document.createElement('button'); el.type = 'button'; el.className = 'fish-card'; el.dataset.id = String(state.nextId);
   el.innerHTML = `<span class="fish-emoji">${emoji}</span><span class="fish-word">${word}</span>`; els.fishes.appendChild(el);
-  const fish = { id: state.nextId++, word, emoji, el, x, y, vx, vy, bornAt: now, expiresAt: now + lifespan, hooked: false };
+  const fish = { id: state.nextId++, word, emoji, el, x, y, vx, vy, bornAt: now, hooked: false };
   el.addEventListener('click', () => { els.input.focus(); setGuideFish(fish); });
   state.fishes.push(fish); renderFish(fish); if (!state.guideFish) setGuideFish(fish); updateHud(now);
 }
@@ -188,11 +186,9 @@ function tick(now) {
   if (now >= state.endTime) { endGame(); return; }
   const gameRect = els.game.getBoundingClientRect();
   for (const fish of [...state.fishes]) {
-    const ageRatio = (now - fish.bornAt) / (fish.expiresAt - fish.bornAt);
-    if (now >= fish.expiresAt) { removeFish(fish, 'gone'); continue; }
     fish.x += fish.vx * delta; fish.y += Math.sin((now + fish.id * 700) / 1000) * 7 * delta + fish.vy * delta;
     if (fish.x < -170) fish.x = gameRect.width + 150; if (fish.x > gameRect.width + 170) fish.x = -150;
-    fish.y = Math.max(72, Math.min(gameRect.height - 102, fish.y)); fish.el.style.opacity = ageRatio > 0.78 ? String(Math.max(0.18, 1 - (ageRatio - 0.78) / 0.22)) : '1'; renderFish(fish);
+    fish.y = Math.max(72, Math.min(gameRect.height - 102, fish.y)); fish.el.style.opacity = '1'; renderFish(fish);
   }
   if (now >= state.nextSpawnAt) { createFish(now); scheduleNextSpawn(now); }
   updateHud(now); renderGuide(); state.raf = requestAnimationFrame(tick);
