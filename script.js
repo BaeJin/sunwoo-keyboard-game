@@ -46,6 +46,7 @@ const shiftedJamo = {
   'ㅒ': { base: 'ㅐ', key: 'O' }, 'ㅖ': { base: 'ㅔ', key: 'P' }
 };
 const jamoToKey = Object.fromEntries(keyRows.flat().map(([key, jamo, hand, finger]) => [jamo, { key, hand, finger }]));
+const letterToKey = Object.fromEntries(keyRows.flat().map(([key, jamo, hand, finger]) => [key, { key, hand, finger }]));
 for (const [jamo, shift] of Object.entries(shiftedJamo)) {
   const base = jamoToKey[shift.base];
   jamoToKey[jamo] = { ...base, key: shift.key, shifted: true, shiftHand: base.hand === 'left' ? 'right' : 'left', baseJamo: shift.base };
@@ -86,9 +87,15 @@ function decomposeJamo(text) {
   }
   return result;
 }
-function compareJamo(targetWord, typedText) {
-  const target = decomposeJamo(targetWord);
-  const typed = decomposeJamo(typedText);
+function guideSteps(text) {
+  return state.mode === 'ko' ? decomposeJamo(text) : text.toLowerCase().split('');
+}
+function keyInfoFor(step) {
+  return state.mode === 'ko' ? jamoToKey[step] : letterToKey[step.toLowerCase()];
+}
+function compareInput(targetWord, typedText) {
+  const target = guideSteps(targetWord);
+  const typed = guideSteps(typedText);
   let matched = 0;
   while (matched < target.length && matched < typed.length && target[matched] === typed[matched]) matched += 1;
   const hasError = typed.length > matched;
@@ -104,6 +111,7 @@ function buildKeyboard() {
       const el = document.createElement('div');
       el.className = 'key';
       el.dataset.jamo = jamo;
+      el.dataset.key = key;
       el.dataset.hand = hand;
       el.dataset.finger = finger;
       const shifted = Object.entries(shiftedJamo).find(([, value]) => value.base === jamo)?.[0] || '';
@@ -116,7 +124,6 @@ function buildKeyboard() {
 
 function setGuideFish(fish = null) {
   if (fish) state.guideFishId = fish.id;
-  if (state.mode !== 'ko') state.guideFishId = null;
   state.guideFish = state.fishes.find((item) => item.id === state.guideFishId) || state.fishes[0] || null;
   document.querySelectorAll('.fish-card.guided').forEach((el) => el.classList.remove('guided'));
   state.guideFish?.el.classList.add('guided');
@@ -126,13 +133,13 @@ function renderGuide() {
   document.querySelectorAll('.key.active, .key.used, .key.error').forEach((el) => el.classList.remove('active', 'used', 'error'));
   document.querySelectorAll('.finger-dot.active, .finger-dot.error').forEach((el) => el.classList.remove('active', 'error'));
   document.querySelectorAll('.shift-key.active, .shift-key.error').forEach((el) => el.classList.remove('active', 'error'));
-  if (!state.guideFish || state.mode !== 'ko') {
-    els.jamoTrail.innerHTML = '<span class="empty-guide">한글 물고기가 나오면 자모 순서가 표시된다.</span>';
+  if (!state.guideFish) {
+    els.jamoTrail.innerHTML = '<span class="empty-guide">물고기가 나오면 입력 순서가 표시된다.</span>';
     els.nextHint.textContent = '다음: -';
     return;
   }
   const typed = normalize(els.input.value);
-  const { target: jamos, matched, hasError, errorIndex, currentIndex } = compareJamo(state.guideFish.word, typed);
+  const { target: jamos, matched, hasError, errorIndex, currentIndex } = compareInput(state.guideFish.word, typed);
   els.jamoTrail.innerHTML = jamos.map((jamo, i) => {
     const classes = ['jamo'];
     if (i < matched) classes.push('done');
@@ -143,15 +150,17 @@ function renderGuide() {
 
   const focusIndex = hasError ? errorIndex : currentIndex;
   const next = jamos[focusIndex];
-  const info = jamoToKey[next];
+  const info = keyInfoFor(next);
   jamos.slice(0, matched).forEach((j) => {
-    const usedInfo = jamoToKey[j];
+    const usedInfo = keyInfoFor(j);
     const usedJamo = usedInfo?.baseJamo || j;
-    document.querySelector(`.key[data-jamo="${usedJamo}"]`)?.classList.add('used');
+    const selector = state.mode === 'ko' ? `.key[data-jamo="${usedJamo}"]` : `.key[data-key="${usedInfo?.key}"]`;
+    document.querySelector(selector)?.classList.add('used');
   });
   if (next && info) {
     const keyJamo = info.baseJamo || next;
-    const key = document.querySelector(`.key[data-jamo="${keyJamo}"]`);
+    const keySelector = state.mode === 'ko' ? `.key[data-jamo="${keyJamo}"]` : `.key[data-key="${info.key}"]`;
+    const key = document.querySelector(keySelector);
     key?.classList.add(hasError ? 'error' : 'active');
     els.nextHint.textContent = hasError
       ? `오타: ${next} 자리 → ${info.shifted ? 'Shift + ' : ''}${info.key.toUpperCase()}`
@@ -235,7 +244,7 @@ els.input.addEventListener('input', () => {
   if (!state.running) return;
   const typed = normalize(els.input.value);
   setGuideFish();
-  if (state.guideFish && typed && compareJamo(state.guideFish.word, typed).hasError) {
+  if (state.guideFish && typed && compareInput(state.guideFish.word, typed).hasError) {
     els.message.textContent = '오타가 있다. 빨간 자모 자리부터 다시 맞춰봐.';
   }
   renderGuide();
