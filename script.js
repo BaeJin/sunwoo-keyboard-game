@@ -200,11 +200,11 @@ function tick(now) {
 function clearFishes() { state.fishes.forEach((fish) => fish.el.remove()); state.fishes = []; state.guideFish = null; setGuideFish(); }
 function startGame() {
   const now = performance.now(); state.running = true; state.score = 0; state.startTime = now; state.endTime = now + GAME_SECONDS * 1000; state.lastTime = 0; state.nextId = 1;
-  els.start.textContent = '다시 시작'; els.message.textContent = '5분 낚시 시작. 보이는 물고기 이름을 쳐라.'; els.finish.classList.add('hidden'); clearFishes(); updateHud(now);
+  els.game.classList.add('running'); els.start.textContent = '다시 시작'; els.message.textContent = '5분 낚시 시작. 보이는 물고기 이름을 쳐라.'; els.finish.classList.add('hidden'); clearFishes(); updateHud(now);
   for (let i = 0; i < 3; i++) createFish(now + i); setGuideFish(); scheduleNextSpawn(now); els.input.value = ''; els.input.disabled = false; els.input.focus(); cancelAnimationFrame(state.raf); state.raf = requestAnimationFrame(tick);
 }
 function endGame() {
-  state.running = false; cancelAnimationFrame(state.raf); els.input.disabled = true; els.start.textContent = '다시 하기'; els.time.textContent = '0:00';
+  state.running = false; cancelAnimationFrame(state.raf); els.game.classList.remove('running'); els.input.disabled = true; els.start.textContent = '다시 하기'; els.time.textContent = '0:00';
   els.message.textContent = `끝. 총 ${state.score}마리 잡았다.`; els.finish.textContent = `끝! ${state.score}마리 잡았다 🎣`; els.finish.classList.remove('hidden'); clearFishes(); els.inWater.textContent = '0'; els.score.textContent = state.score; els.best.textContent = state.best;
 }
 
