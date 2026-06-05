@@ -245,25 +245,40 @@ function catchFish(fish) {
 function findMatchingFish(typed) { return state.fishes.find((fish) => normalize(fish.word) === typed); }
 
 function tick(now) {
-  if (!state.running) return; if (!state.lastTime) state.lastTime = now; const delta = Math.min(0.05, (now - state.lastTime) / 1000); state.lastTime = now;
-  if (now >= state.endTime) { endGame(); return; }
-  const gameRect = els.game.getBoundingClientRect();
-  for (const fish of [...state.fishes]) {
-    fish.x += fish.vx * delta; fish.y += Math.sin((now + fish.id * 700) / 1000) * 7 * delta + fish.vy * delta;
-    const halfWidth = fish.el.offsetWidth / 2 || 86;
-    const halfHeight = fish.el.offsetHeight / 2 || 32;
-    const minX = halfWidth + 10;
-    const maxX = gameRect.width - halfWidth - 10;
-    const minY = halfHeight + 62;
-    const maxY = gameRect.height - halfHeight - 68;
-    if (fish.x < minX) { fish.x = minX; fish.vx = Math.abs(fish.vx); }
-    if (fish.x > maxX) { fish.x = maxX; fish.vx = -Math.abs(fish.vx); }
-    if (fish.y < minY) { fish.y = minY; fish.vy = Math.abs(fish.vy || 3); }
-    if (fish.y > maxY) { fish.y = maxY; fish.vy = -Math.abs(fish.vy || 3); }
-    fish.el.style.opacity = '1'; renderFish(fish);
+  if (!state.running) return;
+  try {
+    if (!state.lastTime) state.lastTime = now;
+    const delta = Math.min(0.05, (now - state.lastTime) / 1000);
+    state.lastTime = now;
+    if (now >= state.endTime) { endGame(); return; }
+
+    const gameRect = els.game.getBoundingClientRect();
+    for (const fish of [...state.fishes]) {
+      if (!fish.el.isConnected) continue;
+      const halfWidth = Math.min(fish.el.offsetWidth / 2 || 86, Math.max(40, gameRect.width / 2 - 12));
+      const halfHeight = Math.min(fish.el.offsetHeight / 2 || 32, Math.max(24, gameRect.height / 2 - 80));
+      const minX = halfWidth + 10;
+      const maxX = Math.max(minX, gameRect.width - halfWidth - 10);
+      const minY = halfHeight + 62;
+      const maxY = Math.max(minY, gameRect.height - halfHeight - 68);
+
+      fish.x += fish.vx * delta;
+      fish.y += Math.sin((now + fish.id * 700) / 1000) * 7 * delta + fish.vy * delta;
+      if (fish.x <= minX) { fish.x = minX; fish.vx = Math.abs(fish.vx || speedConfig[state.speed].swim); }
+      if (fish.x >= maxX) { fish.x = maxX; fish.vx = -Math.abs(fish.vx || speedConfig[state.speed].swim); }
+      if (fish.y <= minY) { fish.y = minY; fish.vy = Math.abs(fish.vy || 3); }
+      if (fish.y >= maxY) { fish.y = maxY; fish.vy = -Math.abs(fish.vy || 3); }
+      fish.el.style.opacity = '1';
+      renderFish(fish);
+    }
+    if (now >= state.nextSpawnAt) { createFish(now); scheduleNextSpawn(now); }
+    updateHud(now);
+    renderGuide();
+  } catch (error) {
+    console.warn('fish animation recovered', error);
+  } finally {
+    if (state.running) state.raf = requestAnimationFrame(tick);
   }
-  if (now >= state.nextSpawnAt) { createFish(now); scheduleNextSpawn(now); }
-  updateHud(now); renderGuide(); state.raf = requestAnimationFrame(tick);
 }
 function clearFishes() { state.fishes.forEach((fish) => fish.el.remove()); state.fishes = []; state.guideFish = null; state.guideFishId = null; setGuideFish(); }
 function startGame() {
@@ -310,6 +325,14 @@ els.pills.forEach((pill) => {
     if (state.running) { clearFishes(); for (let i = 0; i < 3; i++) createFish(); scheduleNextSpawn(performance.now()); }
     els.input.focus(); renderGuide();
   });
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && state.running) {
+    state.lastTime = performance.now();
+    cancelAnimationFrame(state.raf);
+    state.raf = requestAnimationFrame(tick);
+  }
 });
 
 buildKeyboard(); updateKeyboardModeClass(); updateHud(); renderGuide(); els.input.disabled = false;
