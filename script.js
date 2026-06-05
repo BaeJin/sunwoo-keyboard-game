@@ -2,18 +2,26 @@ const words = {
   ko: [
     '고등어', '참치', '연어', '붕어', '잉어', '상어', '고래', '오징어', '문어', '멸치',
     '갈치', '광어', '우럭', '방어', '도미', '복어', '장어', '새우', '게', '해파리',
-    '가자미', '삼치', '꽁치', '전어', '농어', '메기', '송어', '홍어', '낙지', '조개'
+    '가자미', '삼치', '꽁치', '전어', '농어', '메기', '송어', '홍어', '낙지', '조개',
+    '대구', '청어', '정어리', '전갱이', '망둑어', '놀래기', '베도라치', '쥐치', '말쥐치', '볼락',
+    '개볼락', '쏨뱅이', '쑤기미', '양태', '달고기', '참돔', '감성돔', '돌돔', '자리돔', '옥돔',
+    '민어', '조기', '부세', '꼬치고기', '철갑상어', '은상어', '별상어', '까치상어', '괭이상어', '고래상어',
+    '귀상어', '톱상어', '가오리', '홍어', '노랑가오리', '흰가오리', '색가오리', '망상어', '학공치', '보리멸',
+    '양미리', '빙어', '실고기', '해마', '날치', '복섬', '황복', '쏠배감펭', '쥐노래미', '노래미'
   ],
   en: [
     'fish', 'tuna', 'salmon', 'shark', 'whale', 'squid', 'octopus', 'crab', 'shrimp', 'eel',
-    'carp', 'trout', 'bass', 'cod', 'mackerel', 'anchovy', 'ray', 'clam', 'lobster', 'dolphin'
+    'carp', 'trout', 'bass', 'cod', 'mackerel', 'anchovy', 'ray', 'clam', 'lobster', 'dolphin',
+    'herring', 'sardine', 'pollock', 'flounder', 'halibut', 'snapper', 'grouper', 'goby', 'blenny', 'wrasse',
+    'croaker', 'mullet', 'smelt', 'saury', 'pomfret', 'seahorse', 'flyingfish', 'puffer', 'catfish', 'sturgeon'
   ]
 };
 
-
 const koreanMeaning = {
   fish: '물고기', tuna: '참치', salmon: '연어', shark: '상어', whale: '고래', squid: '오징어', octopus: '문어', crab: '게', shrimp: '새우', eel: '장어',
-  carp: '잉어', trout: '송어', bass: '농어', cod: '대구', mackerel: '고등어', anchovy: '멸치', ray: '가오리', clam: '조개', lobster: '바닷가재', dolphin: '돌고래'
+  carp: '잉어', trout: '송어', bass: '농어', cod: '대구', mackerel: '고등어', anchovy: '멸치', ray: '가오리', clam: '조개', lobster: '바닷가재', dolphin: '돌고래',
+  herring: '청어', sardine: '정어리', pollock: '명태', flounder: '가자미', halibut: '광어', snapper: '도미', grouper: '우럭', goby: '망둑어', blenny: '베도라치', wrasse: '놀래기',
+  croaker: '민어', mullet: '숭어', smelt: '빙어', saury: '꽁치', pomfret: '병어', seahorse: '해마', flyingfish: '날치', puffer: '복어', catfish: '메기', sturgeon: '철갑상어'
 };
 
 const fishEmoji = ['🐟', '🐠', '🐡', '🦈', '🐙', '🦑', '🦐', '🦀'];
