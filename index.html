@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>선우의 키보드 모험</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="hero" aria-labelledby="title">
+      <div>
+        <p class="eyebrow">초2용 타자 연습 게임</p>
+        <h1 id="title">선우의 키보드 모험</h1>
+        <p class="subtitle">내려오는 단어를 보고 그대로 치면 별이 팡! 틀려도 괜찮아. 다시 치면 된다.</p>
+      </div>
+      <div class="mascot" aria-hidden="true">🦊⌨️</div>
+    </section>
+
+    <section class="controls" aria-label="게임 설정">
+      <button class="pill active" data-mode="ko">한글</button>
+      <button class="pill" data-mode="en">영어</button>
+      <button class="pill" data-speed="easy">천천히</button>
+      <button class="pill active" data-speed="normal">보통</button>
+      <button class="pill" data-speed="fast">빠르게</button>
+    </section>
+
+    <section class="scoreboard" aria-label="점수판">
+      <div><span>점수</span><strong id="score">0</strong></div>
+      <div><span>콤보</span><strong id="combo">0</strong></div>
+      <div><span>레벨</span><strong id="level">1</strong></div>
+      <div><span>최고</span><strong id="best">0</strong></div>
+    </section>
+
+    <section class="game-wrap">
+      <div id="game" class="game" aria-live="polite">
+        <div id="word" class="word">사과</div>
+        <div id="pop" class="pop" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section class="typing-panel">
+      <label for="typing">여기에 따라 치기</label>
+      <div class="input-row">
+        <input id="typing" autocomplete="off" spellcheck="false" inputmode="text" placeholder="단어를 그대로 쳐봐" />
+        <button id="start">시작</button>
+      </div>
+      <p id="message" class="message">시작을 누르면 단어가 내려온다.</p>
+    </section>
+
+    <section class="parent-note">
+      <strong>부모용 메모</strong>
+      <p>벌점은 약하게, 성공 피드백은 크게 만들었다. 초반 단어는 짧고 익숙한 명사 위주다.</p>
+    </section>
+  </main>
+  <script src="./script.js"></script>
+</body>
+</html>
