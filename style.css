@@ -109,8 +109,8 @@ input:focus { border-color: var(--blue); box-shadow: 0 0 0 5px rgba(87,182,255,.
 .finger-dot.active { background: #ffefbd; border-color: var(--orange); color: var(--ink); box-shadow: 0 0 0 7px rgba(255,157,46,.22), 0 8px 0 rgba(229,109,31,.24); transform: translateY(-5px); }
 .finger-dot.error { background: #ffe2e2; border-color: var(--danger); color: #9d1717; box-shadow: 0 0 0 7px rgba(255,107,107,.22), 0 8px 0 rgba(181,31,31,.22); transform: translateY(-5px); }
 .shift-key { position: absolute; bottom: 10px; min-width: 72px; padding: 8px 10px; border-radius: 14px; background: #eef7ff; border: 3px solid #b9e4ff; color: #08679b; font-weight: 1000; text-align: center; box-shadow: 0 5px 0 rgba(8,103,155,.12); }
-.left-hand .shift-key { right: 12px; }
-.right-hand .shift-key { left: 12px; }
+.left-hand .shift-key { left: 12px; }
+.right-hand .shift-key { right: 12px; }
 .shift-key.active { background: #ffefbd; border-color: var(--orange); color: var(--ink); box-shadow: 0 0 0 7px rgba(255,157,46,.22), 0 7px 0 rgba(229,109,31,.22); }
 .shift-key.error { background: #ffe2e2; border-color: var(--danger); color: #9d1717; box-shadow: 0 0 0 7px rgba(255,107,107,.22), 0 7px 0 rgba(181,31,31,.22); }
 .parent-note { margin-top: 14px; padding: 16px 18px; color: var(--muted); }
