@@ -133,3 +133,75 @@ input:focus { border-color: var(--blue); box-shadow: 0 0 0 5px rgba(87,182,255,.
   .hands { grid-template-columns: 1fr; }
   .finger-dot { width: 48px; }
 }
+
+@media (min-width: 900px) {
+  .app {
+    width: min(1180px, calc(100vw - 24px));
+    min-height: 100vh;
+    padding: 10px 0 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(360px, .92fr);
+    grid-template-areas:
+      "hero hero"
+      "controls score"
+      "game guide"
+      "typing guide"
+      "note note";
+    gap: 10px 12px;
+    align-content: start;
+  }
+  .hero { grid-area: hero; padding: 14px 18px; border-radius: 22px; }
+  .controls { grid-area: controls; margin-top: 0; padding: 10px; align-items: center; }
+  .scoreboard { grid-area: score; margin: 0; padding: 10px; }
+  .game-wrap { grid-area: game; }
+  .typing-panel { grid-area: typing; margin-top: 0; padding: 12px 14px; }
+  .guide-panel { grid-area: guide; margin-top: 0; padding: 12px; align-self: stretch; }
+  .parent-note { grid-area: note; margin-top: 0; padding: 10px 14px; border-width: 2px; }
+
+  .eyebrow { margin-bottom: 2px; font-size: 14px; }
+  h1 { font-size: clamp(30px, 4vw, 44px); line-height: 1; }
+  .subtitle { margin-top: 6px; font-size: 15px; }
+  .mascot { font-size: clamp(44px, 6vw, 68px); }
+  .pill { padding: 9px 14px; font-size: 15px; }
+  .scoreboard div { padding: 5px 6px; border-radius: 14px; }
+  .scoreboard span { font-size: 13px; }
+  .scoreboard strong { font-size: 25px; }
+  .game { height: clamp(280px, 43vh, 360px); min-height: 280px; border-radius: 28px; }
+  .fish-card { padding: 9px 14px; border-width: 3px; font-size: clamp(23px, 3.4vw, 36px); }
+  .dock { right: 14px; top: 8px; font-size: clamp(34px, 5vw, 48px); }
+  .typing-panel label { font-size: 15px; margin-bottom: 6px; }
+  input { padding: 10px 14px; border-radius: 16px; font-size: 25px; }
+  .message { min-height: 22px; margin-top: 7px; font-size: 15px; }
+  .guide-head { margin-bottom: 8px; }
+  .guide-head strong { font-size: 19px; }
+  .guide-head p { font-size: 13px; }
+  .next-hint { padding: 8px 11px; border-radius: 14px; font-size: 15px; }
+  .jamo-trail { min-height: 42px; gap: 6px; padding: 7px; margin-bottom: 8px; }
+  .jamo { min-width: 34px; height: 34px; border-radius: 11px; font-size: 21px; }
+  .keyboard { gap: 6px; padding: 8px; border-radius: 18px; }
+  .key-row { gap: 5px; }
+  .key { width: 51px; min-height: 50px; padding: 5px; border-radius: 12px; }
+  .key .latin { font-size: 11px; }
+  .key strong { font-size: 22px; }
+  .keyboard.english-mode .key .latin { font-size: 23px; }
+  .keyboard.english-mode .key strong { font-size: 13px; }
+  .shifted-jamo { font-size: 10px; padding: 1px 4px; }
+  .hands { gap: 8px; margin-top: 8px; }
+  .hand { min-height: 96px; padding: 26px 8px 10px; border-radius: 18px; gap: 5px; }
+  .finger-dot { width: 40px; font-size: 10px; padding-bottom: 7px; }
+  .finger-dot.index { height: 60px; }
+  .finger-dot.middle { height: 70px; }
+  .finger-dot.ring { height: 63px; }
+  .finger-dot.pinky { height: 52px; }
+  .shift-key { min-width: 56px; padding: 6px 7px; font-size: 12px; border-radius: 11px; }
+  .parent-note p { display: inline; margin-left: 8px; }
+}
+
+@media (min-width: 900px) and (max-height: 820px) {
+  .parent-note { display: none; }
+  .app { padding: 8px 0 10px; gap: 8px 10px; }
+  .hero { padding: 10px 16px; }
+  .subtitle { font-size: 14px; }
+  .game { height: clamp(240px, 36vh, 300px); min-height: 240px; }
+  .guide-head p { display: none; }
+}
