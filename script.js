@@ -26,7 +26,7 @@ const koreanMeaning = {
 
 const fishEmoji = ['🐟', '🐠', '🐡', '🦈', '🐙', '🦑', '🦐', '🦀'];
 const praise = ['잡았다!', '월척이다!', '손맛 좋다!', '물고기 획득!', '낚시 성공!', '슝— 잡았다!'];
-const GAME_SECONDS = 5 * 60;
+const DEFAULT_GAME_MINUTES = 5;
 const speedConfig = {
   easy: { maxFish: 4, spawnMin: 4200, spawnMax: 6200, swim: 10 },
   normal: { maxFish: 6, spawnMin: 3000, spawnMax: 5000, swim: 15 },
@@ -76,14 +76,19 @@ const els = {
 };
 
 const state = {
-  running: false, mode: 'ko', speed: 'normal', score: 0,
-  best: Number(localStorage.getItem('sunwoo-fishing-best') || localStorage.getItem('sunwoo-keyboard-best') || 0),
+  running: false, mode: 'ko', speed: 'normal', gameMinutes: DEFAULT_GAME_MINUTES, score: 0,
+  best: Number(localStorage.getItem(`sunwoo-fishing-best-${DEFAULT_GAME_MINUTES}m`) || localStorage.getItem('sunwoo-fishing-best') || localStorage.getItem('sunwoo-keyboard-best') || 0),
   fishes: [], nextId: 1, startTime: 0, endTime: 0, nextSpawnAt: 0, lastTime: 0, raf: null, guideFish: null, guideFishId: null, isComposing: false, suppressGuideUntil: 0
 };
 
 function rand(min, max) { return min + Math.random() * (max - min); }
 function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
 function formatTime(seconds) { const s = Math.max(0, Math.ceil(seconds)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
+function gameSeconds() { return state.gameMinutes * 60; }
+function bestKey(minutes = state.gameMinutes) { return `sunwoo-fishing-best-${minutes}m`; }
+function loadBest(minutes = state.gameMinutes) {
+  return Number(localStorage.getItem(bestKey(minutes)) || (minutes === DEFAULT_GAME_MINUTES ? localStorage.getItem('sunwoo-fishing-best') || localStorage.getItem('sunwoo-keyboard-best') : 0) || 0);
+}
 function normalize(text) { return text.trim().toLowerCase(); }
 function isHangulSyllable(ch) { const code = ch.charCodeAt(0); return code >= 0xac00 && code <= 0xd7a3; }
 
@@ -211,7 +216,7 @@ function pickWord() {
   return pick(candidates.length ? candidates : bank);
 }
 function updateHud(now = performance.now()) {
-  const remaining = state.running ? (state.endTime - now) / 1000 : GAME_SECONDS;
+  const remaining = state.running ? (state.endTime - now) / 1000 : gameSeconds();
   els.time.textContent = formatTime(remaining); els.score.textContent = state.score; els.inWater.textContent = state.fishes.length; els.best.textContent = state.best;
 }
 function scheduleNextSpawn(now) { const cfg = speedConfig[state.speed]; state.nextSpawnAt = now + rand(cfg.spawnMin, cfg.spawnMax); }
@@ -243,7 +248,7 @@ function positionLineTo(fish) { els.line.style.left = `${fish.x + fish.el.offset
 function showPop(text, fish) { els.pop.textContent = text; els.pop.style.left = `${fish.x + fish.el.offsetWidth / 2}px`; els.pop.style.top = `${fish.y}px`; els.pop.classList.remove('show'); void els.pop.offsetWidth; els.pop.classList.add('show'); }
 function showCatch(fish) { els.catch.textContent = fish.emoji; els.catch.style.left = `${fish.x + fish.el.offsetWidth / 2}px`; els.catch.style.top = `${fish.y}px`; els.game.classList.remove('catching'); els.catch.classList.remove('show'); void els.catch.offsetWidth; els.game.classList.add('catching'); els.catch.classList.add('show'); positionLineTo(fish); }
 function catchFish(fish) {
-  state.score += 1; if (state.score > state.best) { state.best = state.score; localStorage.setItem('sunwoo-fishing-best', String(state.best)); }
+  state.score += 1; if (state.score > state.best) { state.best = state.score; localStorage.setItem(bestKey(), String(state.best)); }
   els.message.textContent = `${pick(praise)} 지금 ${state.score}마리`; showCatch(fish); showPop('💦', fish);
   clearTypingInput();
   removeFish(fish, 'caught');
@@ -290,8 +295,8 @@ function tick(now) {
 }
 function clearFishes() { state.fishes.forEach((fish) => fish.el.remove()); state.fishes = []; state.guideFish = null; state.guideFishId = null; setGuideFish(); }
 function startGame() {
-  const now = performance.now(); state.running = true; state.score = 0; state.startTime = now; state.endTime = now + GAME_SECONDS * 1000; state.lastTime = 0; state.nextId = 1;
-  els.game.classList.add('running'); els.start.textContent = '다시 시작'; els.message.textContent = '5분 낚시 시작. 보이는 물고기 이름을 쳐라.'; els.finish.classList.add('hidden'); clearFishes(); updateHud(now);
+  const now = performance.now(); state.running = true; state.score = 0; state.best = loadBest(); state.startTime = now; state.endTime = now + gameSeconds() * 1000; state.lastTime = 0; state.nextId = 1;
+  els.game.classList.add('running'); els.start.textContent = '다시 시작'; els.message.textContent = `${state.gameMinutes}분 낚시 시작. 보이는 물고기 이름을 쳐라.`; els.finish.classList.add('hidden'); clearFishes(); updateHud(now);
   for (let i = 0; i < 3; i++) createFish(now + i); setGuideFish(); scheduleNextSpawn(now); clearTypingInput(); els.input.disabled = false; els.input.focus(); cancelAnimationFrame(state.raf); state.raf = requestAnimationFrame(tick);
 }
 function endGame() {
@@ -327,7 +332,15 @@ els.input.addEventListener('keydown', (event) => {
 });
 els.pills.forEach((pill) => {
   pill.addEventListener('click', () => {
-    const mode = pill.dataset.mode; const speed = pill.dataset.speed;
+    const mode = pill.dataset.mode; const speed = pill.dataset.speed; const duration = pill.dataset.duration;
+    if (duration) {
+      if (state.running) { els.message.textContent = '제한 시간은 다음 판 시작 전에 바꿀 수 있다.'; els.input.focus(); return; }
+      state.gameMinutes = Number(duration);
+      state.best = loadBest();
+      document.querySelectorAll('[data-duration]').forEach((el) => el.classList.toggle('active', el === pill));
+      els.message.textContent = `${state.gameMinutes}분으로 한다. 시작 누르면 바로 간다.`;
+      updateHud();
+    }
     if (mode) { state.mode = mode; clearTypingInput(); updateKeyboardModeClass(); document.querySelectorAll('[data-mode]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = mode === 'ko' ? '한글 물고기로 간다.' : '영어 물고기로 간다.'; }
     if (speed) { state.speed = speed; document.querySelectorAll('[data-speed]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = speed === 'easy' ? '느긋하게 낚자.' : speed === 'fast' ? '바글바글하게 낚자.' : '보통 속도로 낚자.'; }
     if (state.running) { clearFishes(); for (let i = 0; i < 3; i++) createFish(); scheduleNextSpawn(performance.now()); }
