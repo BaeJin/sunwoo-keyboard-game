@@ -106,6 +106,8 @@ input:focus { border-color: var(--blue); box-shadow: 0 0 0 5px rgba(87,182,255,.
 .key.error { background: #ffe2e2; border-color: var(--danger); color: #9d1717; box-shadow: 0 0 0 6px rgba(255,107,107,.2), 0 6px 0 rgba(181,31,31,.2); transform: translateY(-2px); }
 .hands { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .hand { position: relative; display: flex; justify-content: center; align-items: flex-end; gap: 8px; min-height: 126px; padding: 32px 12px 14px; border-radius: 24px; background: #fff9ef; border: 3px solid rgba(255, 157, 46, .2); }
+.left-hand { padding-left: 96px; }
+.right-hand { padding-right: 96px; }
 .hand-title { position: absolute; top: 10px; left: 14px; color: var(--muted); font-weight: 1000; }
 .finger-dot { display: grid; place-items: end center; width: 54px; border-radius: 999px 999px 22px 22px; background: white; border: 3px solid #ffd188; box-shadow: 0 6px 0 rgba(229,109,31,.12); color: var(--muted); font-size: 12px; font-weight: 1000; padding-bottom: 9px; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
 .finger-dot.index { height: 82px; }
@@ -190,8 +192,10 @@ input:focus { border-color: var(--blue); box-shadow: 0 0 0 5px rgba(87,182,255,.
   .keyboard.english-mode .key .latin { font-size: 23px; }
   .keyboard.english-mode .key strong { font-size: 13px; }
   .shifted-jamo { font-size: 10px; padding: 1px 4px; }
-  .hands { gap: 8px; margin-top: 8px; }
+  .hands { grid-template-columns: 1fr; gap: 8px; margin-top: 8px; }
   .hand { min-height: 96px; padding: 26px 8px 10px; border-radius: 18px; gap: 5px; }
+  .left-hand { padding-left: 76px; }
+  .right-hand { padding-right: 76px; }
   .finger-dot { width: 40px; font-size: 10px; padding-bottom: 7px; }
   .finger-dot.index { height: 60px; }
   .finger-dot.middle { height: 70px; }
