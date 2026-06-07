@@ -71,7 +71,7 @@ const els = {
   catch: document.querySelector('#catch'), finish: document.querySelector('#finish'), input: document.querySelector('#typing'),
   start: document.querySelector('#start'), message: document.querySelector('#message'), score: document.querySelector('#score'),
   time: document.querySelector('#time'), inWater: document.querySelector('#inWater'), best: document.querySelector('#best'),
-  pop: document.querySelector('#pop'), pills: document.querySelectorAll('.pill'), keyboard: document.querySelector('#keyboard'),
+  pop: document.querySelector('#pop'), pills: document.querySelectorAll('.pill'), durationSelect: document.querySelector('#durationSelect'), keyboard: document.querySelector('#keyboard'),
   jamoTrail: document.querySelector('#jamoTrail'), nextHint: document.querySelector('#nextHint')
 };
 
@@ -332,20 +332,25 @@ els.input.addEventListener('keydown', (event) => {
 });
 els.pills.forEach((pill) => {
   pill.addEventListener('click', () => {
-    const mode = pill.dataset.mode; const speed = pill.dataset.speed; const duration = pill.dataset.duration;
-    if (duration) {
-      if (state.running) { els.message.textContent = '제한 시간은 다음 판 시작 전에 바꿀 수 있다.'; els.input.focus(); return; }
-      state.gameMinutes = Number(duration);
-      state.best = loadBest();
-      document.querySelectorAll('[data-duration]').forEach((el) => el.classList.toggle('active', el === pill));
-      els.message.textContent = `${state.gameMinutes}분으로 한다. 시작 누르면 바로 간다.`;
-      updateHud();
-    }
+    const mode = pill.dataset.mode; const speed = pill.dataset.speed;
     if (mode) { state.mode = mode; clearTypingInput(); updateKeyboardModeClass(); document.querySelectorAll('[data-mode]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = mode === 'ko' ? '한글 물고기로 간다.' : '영어 물고기로 간다.'; }
     if (speed) { state.speed = speed; document.querySelectorAll('[data-speed]').forEach((el) => el.classList.toggle('active', el === pill)); els.message.textContent = speed === 'easy' ? '느긋하게 낚자.' : speed === 'fast' ? '바글바글하게 낚자.' : '보통 속도로 낚자.'; }
     if (state.running) { clearFishes(); for (let i = 0; i < 3; i++) createFish(); scheduleNextSpawn(performance.now()); }
     els.input.focus(); renderGuide();
   });
+});
+
+els.durationSelect.addEventListener('change', () => {
+  if (state.running) {
+    els.durationSelect.value = String(state.gameMinutes);
+    els.message.textContent = '제한 시간은 다음 판 시작 전에 바꿀 수 있다.';
+    return;
+  }
+  state.gameMinutes = Number(els.durationSelect.value);
+  state.best = loadBest();
+  els.message.textContent = `${state.gameMinutes}분으로 한다. 시작 누르면 바로 간다.`;
+  updateHud();
+  renderGuide();
 });
 
 document.addEventListener('visibilitychange', () => {

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>선우의 낚시 타자</title>
-  <link rel="stylesheet" href="./style.css?v=20260607-duration" />
+  <link rel="stylesheet" href="./style.css?v=20260607-duration-select" />
 </head>
 <body>
   <main class="app">
@@ -23,11 +23,17 @@
       <button class="pill" data-speed="easy">느긋하게</button>
       <button class="pill active" data-speed="normal">보통</button>
       <button class="pill" data-speed="fast">바글바글</button>
-      <button class="pill active" data-duration="5">5분</button>
-      <button class="pill" data-duration="10">10분</button>
-      <button class="pill" data-duration="15">15분</button>
-      <button class="pill" data-duration="20">20분</button>
-      <button class="pill" data-duration="30">30분</button>
+      <label class="duration-control" for="durationSelect">
+        <span>제한 시간</span>
+        <select id="durationSelect" aria-label="게임 제한 시간">
+          <option value="5" selected>5분</option>
+          <option value="10">10분</option>
+          <option value="15">15분</option>
+          <option value="20">20분</option>
+          <option value="25">25분</option>
+          <option value="30">30분</option>
+        </select>
+      </label>
     </section>
 
     <section class="scoreboard" aria-label="점수판">
@@ -92,6 +98,6 @@
       <p>점수는 잡은 마릿수다. 물고기는 사라지지 않고 계속 유영하며, 시작 전에 5분 단위로 제한 시간을 고를 수 있다.</p>
     </section>
   </main>
-  <script src="./script.js?v=20260607-duration"></script>
+  <script src="./script.js?v=20260607-duration-select"></script>
 </body>
 </html>
