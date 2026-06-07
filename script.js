@@ -340,18 +340,24 @@ els.pills.forEach((pill) => {
   });
 });
 
-els.durationSelect.addEventListener('change', () => {
+function handleDurationChange() {
+  const selectedMinutes = Number(els.durationSelect.value);
   if (state.running) {
     els.durationSelect.value = String(state.gameMinutes);
     els.message.textContent = '제한 시간은 다음 판 시작 전에 바꿀 수 있다.';
+    updateHud();
     return;
   }
-  state.gameMinutes = Number(els.durationSelect.value);
+  state.gameMinutes = selectedMinutes;
   state.best = loadBest();
   els.message.textContent = `${state.gameMinutes}분으로 한다. 시작 누르면 바로 간다.`;
+  els.time.textContent = formatTime(gameSeconds());
+  els.best.textContent = state.best;
   updateHud();
   renderGuide();
-});
+}
+els.durationSelect.addEventListener('input', handleDurationChange);
+els.durationSelect.addEventListener('change', handleDurationChange);
 
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && state.running) {
